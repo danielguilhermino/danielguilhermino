@@ -64,12 +64,71 @@ Software engineer with 14 years across financial operations and software develop
 
 ## 🚀 Featured projects
 
-> Public repositories are coming soon. Each one will include architecture diagrams, design decisions, tests and an estimated cost for the AWS resources it uses.
+### Concurfy
+Study platform for public-exam preparation, with music-based study material. Generated content goes through a human review gate before reaching students.
+**Stack:** React Native (Expo) · React · FastAPI · Supabase Postgres · Ollama · ACE-Step · TTS · AWS Lambda · S3 · SES
 
-## 📈 GitHub stats
+```mermaid
+flowchart LR
+    App["Student app<br/>Expo / React Native"] --> API["FastAPI API<br/>Lambda + local"]
+    Admin["Admin frontend<br/>React"] --> API
+    API --> DB[("Supabase Postgres")]
+    API --> Pay["Pagar.me"]
+    API --> Mail["Amazon SES"]
+    LyricW["Lyric worker<br/>Ollama (local LLM)"] --> Review{{"Human review gate"}}
+    Review --> API
+    MusicW["Music worker<br/>ACE-Step (GPU)"] --> S3[("S3 · audio")]
+    TTS["TTS service"] --> S3
+```
 
-![Stats](https://github-readme-stats.vercel.app/api?username=danielguilhermino&show_icons=true&theme=tokyonight&hide_border=true)
-![Top languages](https://github-readme-stats.vercel.app/api/top-langs/?username=danielguilhermino&layout=compact&theme=tokyonight&hide_border=true)
+### Condomínio Inteligente
+Condominium management app: notices with read confirmation, Pix payments, photo-based expense capture (OCR) with manager approval and duplicate detection.
+**Stack:** FastAPI · SQLAlchemy · Alembic · Postgres (Supabase) · S3 · React Native (Expo) · Lambda · API Gateway · CloudFront
+
+```mermaid
+flowchart LR
+    Mobile["Expo app<br/>Android · iOS · Web"] --> APIGW["API Gateway"]
+    APIGW --> Lambda["FastAPI on Lambda"]
+    Lambda --> DB[("Postgres · Supabase")]
+    Lambda --> S3[("S3 · files and receipts")]
+    Web["Management panel"] --> CF["CloudFront"]
+    CF --> S3
+```
+
+### Payment Engine
+Gateway-agnostic payment engine built with ports and adapters. Business rules stay isolated from providers, with idempotency and webhook deduplication.
+**Stack:** Python · FastAPI · Hexagonal architecture · Asaas · Mercado Pago · Webhooks
+
+```mermaid
+flowchart LR
+    Product["Product backend"] -->|signed checkout token| Engine["Payment Engine<br/>domain + services"]
+    Engine --> Port{{"PaymentGateway port"}}
+    Port --> Asaas["Asaas adapter"]
+    Port --> MP["Mercado Pago adapter"]
+    Gateways["Gateway webhooks"] --> Engine
+    Engine --> Repo[("OrderRepository")]
+```
+
+### Fiscal Engine for NFS-e and NF-e
+Multi-tenant serverless fiscal engine for Brazilian electronic invoices (national NFS-e and NF-e/NFC-e for SEFAZ-RJ). Asynchronous, ticket-based flow to absorb government API latency and retries.
+**Stack:** API Gateway · Lambda (ARM64) · SQS · DynamoDB · S3 · mTLS · XMLDSig
+
+```mermaid
+sequenceDiagram
+    autonumber
+    participant ERP as ERP client
+    participant API as API Gateway + Lambda
+    participant Q as SQS
+    participant W as Emission worker
+    participant Gov as Tax authority
+    ERP->>API: Request emission
+    API-->>ERP: Ticket
+    API->>Q: Enqueue job
+    Q->>W: Consume job
+    W->>Gov: Signed document over mTLS
+    W-->>API: Status stored in DynamoDB
+    ERP->>API: Poll ticket
+```
 
 ## 📫 Let's connect
 
